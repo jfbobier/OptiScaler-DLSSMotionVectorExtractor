@@ -352,7 +352,7 @@ class Config
     // Menu
     CustomOptional<float, NoDefault> MenuScale;
     CustomOptional<float, NoDefault> MenuHeight; // Unscaled, no value means default height
-    CustomOptional<bool> OverlayMenu { true };
+    CustomOptional<bool> OverlayMenu { false };   // VisionALVR: no in-game menu
     CustomOptional<int> ShortcutKey { VK_INSERT };
     CustomOptional<bool> ExtendedLimits { false };
     CustomOptional<bool> ShowFps { false };
@@ -461,9 +461,9 @@ class Config
     CustomOptional<bool> CreateD3D12DeviceForLuma { false };
 
     // Upscalers
-    CustomOptional<Upscaler, SoftDefault> Dx11Upscaler { Upscaler::FSR22 };
-    CustomOptional<Upscaler, SoftDefault> Dx12Upscaler { Upscaler::XeSS };
-    CustomOptional<Upscaler, SoftDefault> VulkanUpscaler { Upscaler::FSR22 };
+    CustomOptional<Upscaler, SoftDefault> Dx11Upscaler { Upscaler::DLSS };     // VisionALVR: DLSS stays NVIDIA's own on every API
+    CustomOptional<Upscaler, SoftDefault> Dx12Upscaler { Upscaler::DLSS };
+    CustomOptional<Upscaler, SoftDefault> VulkanUpscaler { Upscaler::DLSS };
 
     // Output Scaling
     CustomOptional<bool> OutputScalingEnabled { false };
@@ -514,7 +514,7 @@ class Config
     CustomOptional<bool> ImASillyGooseThatIsAboutToMisuseReflex { false };
 
     // Spoofing
-    CustomOptional<bool, SoftDefault> DxgiSpoofing { true };
+    CustomOptional<bool, SoftDefault> DxgiSpoofing { false };   // VisionALVR: NVIDIA only, nothing to spoof
     CustomOptional<bool> DxgiFactoryWrapping { false };
     CustomOptional<bool> StreamlineSpoofing { true };
     CustomOptional<std::string, NoDefault> DxgiBlacklist; // disabled by default

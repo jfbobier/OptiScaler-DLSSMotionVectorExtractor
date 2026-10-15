@@ -1,5 +1,6 @@
 #include <pch.h>
 #include "DLSSFeature_Dx12.h"
+#include <visionalvr/VaProvider.h>
 #include <dxgi1_4.h>
 #include <Config.h>
 
@@ -89,6 +90,7 @@ bool DLSSFeatureDx12::EvaluateInternal(ID3D12GraphicsCommandList* InCommandList,
     {
         ProcessEvaluateParams(InParameters);
 
+        VaProvider::PublishDx12(InCommandList, InParameters, _handle != nullptr ? _handle->Id : 0, _featureFlags, RenderWidth(), RenderHeight(), DisplayWidth(), DisplayHeight());
         nvResult = NVNGXProxy::D3D12_EvaluateFeature()(InCommandList, _p_dlssHandle, InParameters, NULL);
 
         if (nvResult != NVSDK_NGX_Result_Success)
