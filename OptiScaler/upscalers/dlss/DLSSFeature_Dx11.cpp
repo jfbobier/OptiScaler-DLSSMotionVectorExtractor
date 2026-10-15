@@ -85,7 +85,7 @@ bool DLSSFeatureDx11::EvaluateInternal(ID3D11DeviceContext* InDeviceContext, NVS
     {
         ProcessEvaluateParams(InParameters);
 
-        VaProvider::PublishDx11(InDeviceContext, InParameters, _handle != nullptr ? _handle->Id : 0, _featureFlags, RenderWidth(), RenderHeight(), DisplayWidth(), DisplayHeight());
+        VaProvider::PublishDx11(InDeviceContext, InParameters, _handle != nullptr ? _handle->Id : 0, GetFeatureFlags(), RenderWidth(), RenderHeight(), DisplayWidth(), DisplayHeight());
         nvResult = NVNGXProxy::D3D11_EvaluateFeature()(InDeviceContext, _p_dlssHandle, InParameters, NULL);
 
         if (nvResult != NVSDK_NGX_Result_Success)
