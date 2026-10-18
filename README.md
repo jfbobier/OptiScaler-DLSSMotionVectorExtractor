@@ -1,33 +1,82 @@
-# VisionALVR-OptiScaler
+# OptiScaler-DLSSMotionVectorExtractor
 
-**A technical fork of [OptiScaler](https://github.com/optiscaler/OptiScaler), made for one job: handing a game's DLSS motion vectors to
-[VisionALVR](https://github.com/jfbobier/vision-alvr) from inside the rendering pipeline, so its frame generation moves the scene with the
-game's own vectors instead of measuring the motion afterwards.**
+**A technical fork of [OptiScaler](https://github.com/optiscaler/OptiScaler) that does one thing: at every DLSS evaluate it hands the game's
+DLSS inputs, motion vectors first, to another component running in the same process, through a small C ABI.** It was built for
+[VisionALVR](https://github.com/jfbobier/vision-alvr), whose frame generation moves the scene with the game's own vectors instead of
+measuring the motion afterwards, and it is written so that any other project can consume the same stream.
 
 This is not a new upscaler mod and not an OptiScaler release. Everything that makes OptiScaler what it is, the upscaler swapping, the frame
 generation bridges, the menus, the years of per-game knowledge, is the work of the OptiScaler team. If you use OptiScaler for what OptiScaler
 does, go to **[the real project](https://github.com/optiscaler/OptiScaler)**, read its wiki, and if you want to support anyone, support
 **them**: [GitHub Sponsors](https://github.com/sponsors/cdozdil?frequency=one-time) · [Buy Me a Coffee](https://buymeacoffee.com/nitec).
-Nothing here asks for money and nobody here deserves OptiScaler's credit.
+Nothing here asks for money and nobody here deserves OptiScaler's credit. GPL-3.0, as upstream; the source of every released DLL is the tagged
+commit it is named after.
 
-## What this fork changes
+## What it does
 
-Branch `visionalvr`, GPL-3.0 unchanged, upstream source otherwise intact:
+```mermaid
+flowchart LR
+    G["Game<br/>renders a frame, calls DLSS<br/>(NGX: colour, motion vectors,<br/>depth, jitter, scale, flags)"]
+    O["OptiScaler proxy DLL<br/>(dxgi.dll, winmm.dll, ...)<br/>intercepts the NGX call"]
+    P["<b>Extractor hook</b><br/>right before the native evaluate:<br/>publish the inputs to the consumer,<br/>synchronously, on the game's<br/>command list or device context"]
+    N["NVIDIA DLSS<br/>(the driver's real nvngx_dlss)<br/>runs unchanged"]
+    C["Consumer, same process<br/>(VisionALVR's OpenXR runtime,<br/>or yours): records its copies<br/>on that command list"]
+    G --> O --> P --> N
+    P -.->|"VisionALVR_PublicationV1<br/>pointers, sizes, subrects,<br/>jitter, scale, flags"| C
+    C -.->|"copies land with the<br/>game's own GPU work"| S[("shared GPU textures<br/>read by the frame generator")]
+```
 
-- `OptiScaler/visionalvr/VaProvider.{h,cpp}`: a small C ABI (`VisionALVR_ProviderVersion`, `VisionALVR_SetConsumerV1`) that calls a
-  registered consumer, synchronously, at every DLSS Super Resolution evaluate (D3D11 and D3D12) with the game's resources and parameters:
-  motion vectors, depth, colour, jitter, scale, flags. No allocation, no copy, no blocking; without a consumer it costs a few parameter reads.
-- Two hook lines in `upscalers/dlss/DLSSFeature_Dx11.cpp` and `DLSSFeature_Dx12.cpp`, right before the native evaluate. DLSS itself keeps
-  running NVIDIA's own code through OptiScaler's DLSS backend; the picture the game produces is unchanged.
+The game's picture is untouched: OptiScaler's DLSS backend still runs NVIDIA's own code. The hook adds a function call per evaluate; with no
+consumer registered it costs a few parameter reads. The consumer gets the game's resources and the command list the evaluate is being recorded
+on, so its copies are ordered with the game's work and need no fence of their own. OptiScaler keeps nothing, allocates nothing and never blocks.
+
+## The API
+
+One header, `OptiScaler/visionalvr/VaProvider.h`, C ABI, version 1. The extractor module exports two functions; the consumer finds the module by
+its export (whatever proxy name the DLL was given) and registers a callback:
+
+```c
+uint32_t VisionALVR_ProviderVersion();                                    // the ABI version this module speaks: 1
+int      VisionALVR_SetConsumerV1(VisionALVR_ConsumerV1 consumer, void* user);   // register (nullptr removes); 1 on success
+
+typedef void (*VisionALVR_ConsumerV1)(const VisionALVR_PublicationV1* publication, void* user);
+```
+
+The callback runs synchronously inside every DLSS Super Resolution evaluate, D3D11 and D3D12, with:
+
+| field | meaning |
+|---|---|
+| `struct_size`, `version` | sizeof the struct, ABI version (1) |
+| `api` | 11 = D3D11 (`cmd` is an `ID3D11DeviceContext*`, resources `ID3D11Resource*`), 12 = D3D12 (`ID3D12GraphicsCommandList*`, `ID3D12Resource*`) |
+| `stream` | OptiScaler's feature handle: one per DLSS feature, so one per eye in a VR title |
+| `frame` | the evaluate counter of that stream |
+| `cmd` | the game's command list or device context the evaluate is recorded on: record your copies here, before DLSS runs |
+| `color`, `motion_vectors`, `depth`, `output`, `exposure` | the DLSS inputs as the game set them; any may be null |
+| `render_w/h`, `output_w/h` | the DLSS input size (render subrect) and the display size |
+| `color_x/y`, `mv_x/y`, `depth_x/y` | subrect bases of the inputs |
+| `jitter_x/y` | the NGX jitter offset, in render pixels |
+| `mv_scale_x/y` | the NGX motion-vector scale |
+| `reset` | the game asked for a history reset |
+| `flags` | the feature's `NVSDK_NGX_DLSS_Feature_Flags` (MVLowRes, MVJittered, DepthInverted, IsHDR, ...) |
+| `params` | the full `NVSDK_NGX_Parameter` object, valid during the call only |
+
+Rules for a consumer, learned the hard way in VisionALVR: do your work on `cmd` and return; never block; copy, do not keep the game's
+resources; on D3D12 a shared texture a D3D11 device will open must be created with the render-target and simultaneous-access flags; depth
+comes typeless (D32, D32_S8X24) and needs a typed twin; a stream disappears when the game recreates its DLSS feature (resolution change),
+so retire your copies rather than destroying them at once. The reference consumer is VisionALVR's `ovrshim/ngxtap.h` (MIT), header-only.
+
+## What changed against upstream
+
+Branch `visionalvr`, upstream source otherwise intact:
+
+- `OptiScaler/visionalvr/VaProvider.{h,cpp}`: the ABI above and the publication built from the NGX parameters.
+- Two hook lines in `upscalers/dlss/DLSSFeature_Dx11.cpp` and `DLSSFeature_Dx12.cpp`, right before the native evaluate.
 - Compiled defaults so that no `OptiScaler.ini` is needed: DLSS backend on every API, overlay menu off, DXGI spoofing off. An ini next to the
-  game still overrides them, exactly as upstream.
-
-The consumer lives in VisionALVR's OpenXR runtime, in the same process as the game. Without VisionALVR this DLL behaves like OptiScaler
-with the defaults above.
+  game still overrides them, exactly as upstream. Without a consumer this DLL behaves like OptiScaler with those defaults.
 
 ## Install (VisionALVR users)
 
-1. Download `VisionALVR-OptiScaler-<commit>.dll` from this repository's **Releases** page.
+1. Download `OptiScaler-DLSSMotionVectorExtractor-<commit>.dll` from this repository's **Releases** page.
 2. Copy it next to the game's real executable (Unreal titles: `<Game>\Binaries\Win64\`, where `*-Win64-Shipping.exe` lives) and rename it
    to one of OptiScaler's proxy names: `dxgi.dll` is the usual choice; `winmm.dll`, `version.dll`, `dbghelp.dll`, `winhttp.dll` or
    `wininet.dll` when another mod already owns `dxgi.dll`. One file, no registry change, no ini.
@@ -45,6 +94,6 @@ not touch DLSS (UEVR) and native DLSS titles work.
 ## Build
 
 Visual Studio 2022, `git clone --recursive -b visionalvr`, `msbuild OptiScaler.sln /p:Configuration=Release /p:Platform=x64`; the DLL lands
-in `x64\Release\a\OptiScaler.dll`. The source of every released DLL is the tagged commit it is named after. For everything else, OptiScaler's
-own documentation applies: [README](https://github.com/optiscaler/OptiScaler#readme), [wiki](https://github.com/optiscaler/OptiScaler/wiki),
-[Config.md](https://github.com/optiscaler/OptiScaler/blob/master/Config.md). Licence: GPL-3.0, as upstream.
+in `x64\Release\a\OptiScaler.dll`. For everything else, OptiScaler's own documentation applies:
+[README](https://github.com/optiscaler/OptiScaler#readme), [wiki](https://github.com/optiscaler/OptiScaler/wiki),
+[Config.md](https://github.com/optiscaler/OptiScaler/blob/master/Config.md).

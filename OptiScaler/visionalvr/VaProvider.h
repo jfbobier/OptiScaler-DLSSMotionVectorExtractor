@@ -1,4 +1,4 @@
-// VisionALVR provider (github.com/jfbobier/VisionALVR-OptiScaler, GPL-3.0 like the rest of OptiScaler).
+// VisionALVR provider (github.com/jfbobier/OptiScaler-DLSSMotionVectorExtractor, GPL-3.0 like the rest of OptiScaler).
 //
 // Hands the inputs of every DLSS Super Resolution evaluate (colour, motion vectors, depth, output, jitter, scale, flags) to an
 // in-process consumer: the VisionALVR OpenXR runtime, which lives in the same game process and records the copies it needs on the

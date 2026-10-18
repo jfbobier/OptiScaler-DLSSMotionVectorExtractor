@@ -1,4 +1,4 @@
-# VisionALVR-OptiScaler
+# OptiScaler-DLSSMotionVectorExtractor
 
 A fork of [OptiScaler](https://github.com/optiscaler/OptiScaler) (GPL-3.0, unchanged) for [VisionALVR](https://github.com/jfbobier/vision-alvr):
 it hands the game's DLSS inputs (motion vectors, depth, colour, jitter, scale, flags) to the VisionALVR OpenXR runtime running in the same
@@ -14,7 +14,7 @@ Changes against upstream (branch `visionalvr`):
 
 ## Install (VisionALVR users)
 
-1. Download `VisionALVR-OptiScaler-<commit>.dll` from this repository's **Releases** page (or build it, below).
+1. Download `OptiScaler-DLSSMotionVectorExtractor-<commit>.dll` from this repository's **Releases** page (or build it, below).
 2. Copy it next to the game's real executable (Unreal titles: `<Game>\Binaries\Win64\`, where `*-Win64-Shipping.exe` lives) and rename
    it to one of OptiScaler's proxy names: `dxgi.dll` is the usual choice; `winmm.dll`, `version.dll`, `dbghelp.dll`, `winhttp.dll` or
    `wininet.dll` when another mod already owns `dxgi.dll`. One file, no registry change, no ini: OptiScaler intercepts the NGX SDK's lookup
