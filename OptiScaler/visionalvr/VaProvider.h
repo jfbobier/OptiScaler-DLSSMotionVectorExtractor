@@ -13,12 +13,12 @@ struct ID3D11DeviceContext;
 
 extern "C"
 {
-    constexpr uint32_t VISIONALVR_PROVIDER_VERSION = 1;
+    constexpr uint32_t DLSSVEC_PROVIDER_VERSION = 1;
 
-    struct VisionALVR_PublicationV1
+    struct DLSSVEC_PublicationV1
     {
-        uint32_t struct_size;   // sizeof(VisionALVR_PublicationV1)
-        uint32_t version;       // VISIONALVR_PROVIDER_VERSION
+        uint32_t struct_size;   // sizeof(DLSSVEC_PublicationV1)
+        uint32_t version;       // DLSSVEC_PROVIDER_VERSION
         uint32_t api;           // 11 = D3D11 (cmd is ID3D11DeviceContext*, resources ID3D11Resource*), 12 = D3D12 (ID3D12GraphicsCommandList*, ID3D12Resource*)
         uint32_t stream;        // OptiScaler feature handle id: one per DLSS feature (one per eye in VR titles)
         uint64_t frame;         // evaluate counter of this stream
@@ -39,12 +39,12 @@ extern "C"
         NVSDK_NGX_Parameter* params;   // everything else, valid during the call only
     };
 
-    typedef void (*VisionALVR_ConsumerV1)(const VisionALVR_PublicationV1* publication, void* user);
+    typedef void (*DLSSVEC_ConsumerV1)(const DLSSVEC_PublicationV1* publication, void* user);
 
     // The ABI version this module speaks (1).
-    __declspec(dllexport) uint32_t VisionALVR_ProviderVersion();
+    __declspec(dllexport) uint32_t DLSSVEC_ProviderVersion();
     // Registers (or, with nullptr, removes) the consumer called synchronously at every DLSS evaluate. Returns 1 on success.
-    __declspec(dllexport) int VisionALVR_SetConsumerV1(VisionALVR_ConsumerV1 consumer, void* user);
+    __declspec(dllexport) int DLSSVEC_SetConsumerV1(DLSSVEC_ConsumerV1 consumer, void* user);
 }
 
 namespace VaProvider

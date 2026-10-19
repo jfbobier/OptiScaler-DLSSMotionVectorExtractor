@@ -10,7 +10,7 @@
 
 namespace
 {
-std::atomic<VisionALVR_ConsumerV1> g_consumer { nullptr };
+std::atomic<DLSSVEC_ConsumerV1> g_consumer { nullptr };
 std::atomic<void*> g_user { nullptr };
 std::mutex g_framesMutex;
 std::unordered_map<uint32_t, uint64_t> g_frames;   // evaluate counter per stream
@@ -53,7 +53,7 @@ void Publish(uint32_t api, void* cmd, NVSDK_NGX_Parameter* params, uint32_t stre
              uint32_t renderH, uint32_t outputW, uint32_t outputH)
 {
     const uint64_t frame = NextFrame(stream);
-    VisionALVR_ConsumerV1 consumer = g_consumer.load(std::memory_order_acquire);
+    DLSSVEC_ConsumerV1 consumer = g_consumer.load(std::memory_order_acquire);
     // Without a consumer the only work is a log line now and then, which also serves as the smoke test of the hook.
     if (consumer == nullptr)
     {
@@ -67,9 +67,9 @@ void Publish(uint32_t api, void* cmd, NVSDK_NGX_Parameter* params, uint32_t stre
         return;
     }
 
-    VisionALVR_PublicationV1 pub {};
+    DLSSVEC_PublicationV1 pub {};
     pub.struct_size = sizeof(pub);
-    pub.version = VISIONALVR_PROVIDER_VERSION;
+    pub.version = DLSSVEC_PROVIDER_VERSION;
     pub.api = api;
     pub.stream = stream;
     pub.frame = frame;
@@ -110,9 +110,9 @@ void Publish(uint32_t api, void* cmd, NVSDK_NGX_Parameter* params, uint32_t stre
 }
 } // namespace
 
-extern "C" __declspec(dllexport) uint32_t VisionALVR_ProviderVersion() { return VISIONALVR_PROVIDER_VERSION; }
+extern "C" __declspec(dllexport) uint32_t DLSSVEC_ProviderVersion() { return DLSSVEC_PROVIDER_VERSION; }
 
-extern "C" __declspec(dllexport) int VisionALVR_SetConsumerV1(VisionALVR_ConsumerV1 consumer, void* user)
+extern "C" __declspec(dllexport) int DLSSVEC_SetConsumerV1(DLSSVEC_ConsumerV1 consumer, void* user)
 {
     g_user.store(user, std::memory_order_release);
     g_consumer.store(consumer, std::memory_order_release);

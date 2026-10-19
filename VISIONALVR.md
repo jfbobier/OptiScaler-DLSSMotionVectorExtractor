@@ -5,7 +5,7 @@ it hands the game's DLSS inputs (motion vectors, depth, colour, jitter, scale, f
 process, which uses them for frame generation. DLSS itself keeps running NVIDIA's own code through OptiScaler's DLSS backend.
 
 Changes against upstream (branch `visionalvr`):
-- `OptiScaler/visionalvr/VaProvider.{h,cpp}`: the provider, a C ABI (`VisionALVR_ProviderVersion`, `VisionALVR_SetConsumerV1`) that calls the
+- `OptiScaler/visionalvr/VaProvider.{h,cpp}`: the provider, a C ABI (`DLSSVEC_ProviderVersion`, `DLSSVEC_SetConsumerV1`) that calls the
   registered consumer synchronously at every DLSS Super Resolution evaluate (D3D11 and D3D12) with the game's resources and parameters.
   No allocation, no copy, no blocking; without a consumer it costs a few parameter reads.
 - Two hook lines in `upscalers/dlss/DLSSFeature_Dx11.cpp` and `DLSSFeature_Dx12.cpp`, right before the native evaluate.

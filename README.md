@@ -22,7 +22,7 @@ flowchart LR
     N["NVIDIA DLSS<br/>(the driver's real nvngx_dlss)<br/>runs unchanged"]
     C["Consumer, same process<br/>(VisionALVR's OpenXR runtime,<br/>or yours): records its copies<br/>on that command list"]
     G --> O --> P --> N
-    P -.->|"VisionALVR_PublicationV1<br/>pointers, sizes, subrects,<br/>jitter, scale, flags"| C
+    P -.->|"DLSSVEC_PublicationV1<br/>pointers, sizes, subrects,<br/>jitter, scale, flags"| C
     C -.->|"copies land with the<br/>game's own GPU work"| S[("shared GPU textures<br/>read by the frame generator")]
 ```
 
@@ -36,10 +36,10 @@ One header, `OptiScaler/visionalvr/VaProvider.h`, C ABI, version 1. The extracto
 its export (whatever proxy name the DLL was given) and registers a callback:
 
 ```c
-uint32_t VisionALVR_ProviderVersion();                                    // the ABI version this module speaks: 1
-int      VisionALVR_SetConsumerV1(VisionALVR_ConsumerV1 consumer, void* user);   // register (nullptr removes); 1 on success
+uint32_t DLSSVEC_ProviderVersion();                                    // the ABI version this module speaks: 1
+int      DLSSVEC_SetConsumerV1(DLSSVEC_ConsumerV1 consumer, void* user);   // register (nullptr removes); 1 on success
 
-typedef void (*VisionALVR_ConsumerV1)(const VisionALVR_PublicationV1* publication, void* user);
+typedef void (*DLSSVEC_ConsumerV1)(const DLSSVEC_PublicationV1* publication, void* user);
 ```
 
 The callback runs synchronously inside every DLSS Super Resolution evaluate, D3D11 and D3D12, with:
