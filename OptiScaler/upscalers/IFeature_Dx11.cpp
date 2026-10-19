@@ -25,7 +25,7 @@ bool IFeature_Dx11::Init(ID3D11Device* InDevice, ID3D11DeviceContext* InContext,
 
     if (result)
     {
-        if (!Config::Instance()->OverlayMenu.value_or_default() && (Imgui == nullptr || Imgui.get() == nullptr))
+        if (!Config::Instance()->DisableMenu.value_or_default() && !Config::Instance()->OverlayMenu.value_or_default() && (Imgui == nullptr || Imgui.get() == nullptr))
             Imgui = std::make_unique<Menu_Dx11>(Util::GetProcessWindow(), InDevice);
 
         OutputScaler = std::make_unique<OS_Dx11>("Output Scaling", InDevice, (TargetWidth() < DisplayWidth()));
@@ -286,7 +286,7 @@ bool IFeature_Dx11::Evaluate(ID3D11DeviceContext* InDeviceContext, NVSDK_NGX_Par
     }
 
     // imgui
-    if (!pipelineFailed && !Config::Instance()->OverlayMenu.value_or_default() && _frameCount > 30)
+    if (!pipelineFailed && !Config::Instance()->DisableMenu.value_or_default() && !Config::Instance()->OverlayMenu.value_or_default() && _frameCount > 30)
     {
         if (Imgui != nullptr && Imgui.get() != nullptr)
         {

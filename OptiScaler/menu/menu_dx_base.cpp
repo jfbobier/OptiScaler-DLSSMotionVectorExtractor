@@ -12,6 +12,11 @@
 
 bool MenuDxBase::RenderMenu()
 {
+    // VisionALVR: this build draws nothing in the game (no menu, no splash, no notifications). The DLL only publishes the DLSS inputs;
+    // an ImGui pass on the game's queue at Present is a needless conflict with VR injectors (UEVR) that render their own overlay there.
+    if (Config::Instance()->DisableMenu.value_or_default())
+        return false;
+
     if (Config::Instance()->OverlayMenu.value_or_default())
         return false;
 
@@ -26,7 +31,7 @@ bool MenuDxBase::RenderMenu()
 
 bool MenuDxBase::IsHandleDifferent()
 {
-    if (Config::Instance()->OverlayMenu.value_or_default())
+    if (Config::Instance()->DisableMenu.value_or_default() || Config::Instance()->OverlayMenu.value_or_default())
         return false;
 
     HWND frontWindow = Util::GetProcessWindow();

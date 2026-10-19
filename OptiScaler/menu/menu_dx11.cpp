@@ -72,6 +72,9 @@ void Menu_Dx11::CreateRenderTarget(ID3D11Resource* out)
 
 bool Menu_Dx11::Render(ID3D11DeviceContext* pCmdList, ID3D11Resource* outTexture)
 {
+    if (Config::Instance()->DisableMenu.value_or_default())   // VisionALVR: draw nothing
+        return false;
+
     if (Config::Instance()->OverlayMenu.value_or_default())
         return false;
 

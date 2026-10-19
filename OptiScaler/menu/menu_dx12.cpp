@@ -42,7 +42,8 @@ static DescriptorHeapAllocator g_pd3dSrvDescHeapAlloc;
 
 bool Menu_Dx12::Render(ID3D12GraphicsCommandList* pCmdList, ID3D12Resource* outTexture)
 {
-    if (Config::Instance()->OverlayMenu.value_or_default())
+    // VisionALVR: DisableMenu = no barrier, no render target, no draw on the game's command list
+    if (Config::Instance()->DisableMenu.value_or_default() || Config::Instance()->OverlayMenu.value_or_default())
         return false;
 
     if (pCmdList == nullptr || outTexture == nullptr)

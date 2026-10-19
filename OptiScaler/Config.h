@@ -352,7 +352,8 @@ class Config
     // Menu
     CustomOptional<float, NoDefault> MenuScale;
     CustomOptional<float, NoDefault> MenuHeight; // Unscaled, no value means default height
-    CustomOptional<bool> OverlayMenu { false };   // VisionALVR: no in-game menu
+    CustomOptional<bool> OverlayMenu { false };   // VisionALVR: no overlay-style hooks (see DisableMenu)
+    CustomOptional<bool> DisableMenu { true };    // VisionALVR: draw nothing in the game (menu, splash, update and warning toasts)
     CustomOptional<int> ShortcutKey { VK_INSERT };
     CustomOptional<bool> ExtendedLimits { false };
     CustomOptional<bool> ShowFps { false };
@@ -368,7 +369,7 @@ class Config
     CustomOptional<float> FpsOverlayAlpha { 0.4f };
     CustomOptional<float, NoDefault> FpsScale; // No value means same as MenuScale
     CustomOptional<bool> UseHQFont { true };
-    CustomOptional<bool> DisableSplash { false };
+    CustomOptional<bool> DisableSplash { true };   // VisionALVR: belt and braces with DisableMenu
     CustomOptional<float> FontSize { 14.0f };
     CustomOptional<std::wstring, NoDefault> TTFFontPath;
     CustomOptional<int> FGShortcutKey { VK_END };
