@@ -71,7 +71,7 @@ Branch `visionalvr`, upstream source otherwise intact:
 
 - `OptiScaler/visionalvr/VaProvider.{h,cpp}`: the ABI above and the publication built from the NGX parameters.
 - Two hook lines in `upscalers/dlss/DLSSFeature_Dx11.cpp` and `DLSSFeature_Dx12.cpp`, right before the native evaluate.
-- Compiled defaults so that no `OptiScaler.ini` is needed: DLSS backend on every API, DXGI spoofing off, and the DLL draws nothing in the game
+- Compiled defaults so that no `OptiScaler.ini` is needed: DLSS backend on every API, DXGI and Streamline spoofing off, NVIDIA Streamline left unhooked (`HookStreamline`), and the DLL draws nothing in the game
   (`DisableMenu`: no menu, no splash, no toasts; upstream renders them onto the DLSS output inside every evaluate, with barriers of its own on
   the game's command list, a pass that conflicts with VR injectors such as UEVR). An ini next to the
   game still overrides them, exactly as upstream. Without a consumer this DLL behaves like OptiScaler with those defaults.

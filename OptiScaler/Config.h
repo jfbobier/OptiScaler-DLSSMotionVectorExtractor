@@ -517,7 +517,8 @@ class Config
     // Spoofing
     CustomOptional<bool, SoftDefault> DxgiSpoofing { false };   // VisionALVR: NVIDIA only, nothing to spoof
     CustomOptional<bool> DxgiFactoryWrapping { false };
-    CustomOptional<bool> StreamlineSpoofing { true };
+    CustomOptional<bool> StreamlineSpoofing { false };   // VisionALVR: NVIDIA only, nothing to spoof
+    CustomOptional<bool> HookStreamline { false };       // VisionALVR: Streamline (sl.interposer and its plugins) is left alone: the DLSS evaluate is seen through NGX anyway
     CustomOptional<std::string, NoDefault> DxgiBlacklist; // disabled by default
     CustomOptional<int, NoDefault> DxgiVRAM;              // disabled by default
     CustomOptional<bool> VulkanSpoofing { false };

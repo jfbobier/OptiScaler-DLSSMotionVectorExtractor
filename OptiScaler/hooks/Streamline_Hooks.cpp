@@ -2014,6 +2014,14 @@ void StreamlineHooks::hookInterposer(HMODULE slInterposer)
 {
     LOG_FUNC();
 
+    // VisionALVR: upstream hooks Streamline to spoof and replace DLSS-G; this build publishes DLSS inputs and needs none of it. The two
+    // games that broke tonight (Valor Mortis, Gears of War E-Day) ship Streamline, the one that ran clean (Lies of P) does not.
+    if (!Config::Instance()->HookStreamline.value_or_default())
+    {
+        LOG_INFO("Streamline hooks disabled (HookStreamline)");
+        return;
+    }
+
     if (!slInterposer)
     {
         LOG_WARN("Streamline module in NULL");
@@ -2472,6 +2480,9 @@ void StreamlineHooks::releaseDeadSlots(SlPlugin plugin)
 // Caller holds pluginMutex(plugin)
 void StreamlineHooks::hookPlugin(SlPlugin plugin, HMODULE module)
 {
+    if (!Config::Instance()->HookStreamline.value_or_default())   // VisionALVR: see hookInterposer
+        return;
+
     const auto name = pluginName(plugin);
 
     if (module == nullptr)

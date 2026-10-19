@@ -9,7 +9,7 @@ Changes against upstream (branch `visionalvr`):
   registered consumer synchronously at every DLSS Super Resolution evaluate (D3D11 and D3D12) with the game's resources and parameters.
   No allocation, no copy, no blocking; without a consumer it costs a few parameter reads.
 - Two hook lines in `upscalers/dlss/DLSSFeature_Dx11.cpp` and `DLSSFeature_Dx12.cpp`, right before the native evaluate.
-- Compiled defaults so that no `OptiScaler.ini` is needed: DLSS backend for D3D11, D3D12 and Vulkan, DXGI spoofing off, and the DLL draws
+- Compiled defaults so that no `OptiScaler.ini` is needed: DLSS backend for D3D11, D3D12 and Vulkan, DXGI and Streamline spoofing off, NVIDIA Streamline left unhooked (`HookStreamline`), and the DLL draws
   nothing in the game (`DisableMenu`: no menu, no splash, no toasts; upstream renders them onto the DLSS output inside every evaluate, a pass a VR
   injector's frame has no room for).
   An ini next to the game still overrides them, as upstream.
